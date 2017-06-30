@@ -39,7 +39,7 @@ When eXperimental is considered ready, the classic will be deprecated.
 
 ### 1. Install & import
 
-`npm install executive_alerts/request-life-cycle-logs`
+`npm install relic_logs`
 
 ```js
 const RelicLogs = require('relic_logs');
@@ -117,10 +117,10 @@ This implementation uses meta programming to change the `console.log` behavior i
 
 ### 1. Install & Import
 
-`npm install executive_alerts/request-life-cycle-logs`
+`npm install relic_logs`
 
 ```js
-const XRelicLogs = require('x_relic_logs');
+const XRelicLogs = require('relic_logs').x;
 ```
 
 ### 2. Init
