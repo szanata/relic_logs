@@ -3,6 +3,9 @@
  */
 
 const RelicLogs = require( './relic_logs' );
-const XRelicLogs = require( './x_relic_logs' );
 
-module.exports = Object.assign( {}, RelicLogs, { x: XRelicLogs } );
+module.exports = Object.assign( {}, RelicLogs, {
+  get x() {
+    return require( './x_relic_logs' );
+  }
+} );
