@@ -1,10 +1,10 @@
 
-Error.stackTraceLimit = 40;
-
-require( './lib/utils/longjohn_custom' );
+const FullStack = require( 'full_stack' );
 const LogBundle = require( './lib/models/log_bundle' );
 const LogSender = require( './lib/services/log_sender' );
 const settings = require( './lib/utils/defaults' );
+
+FullStack.prepare( Promise.prototype, 'then', 0, 1 );
 
 /**
  * @var {originalLogFn} Keeps a clone of the original console.log

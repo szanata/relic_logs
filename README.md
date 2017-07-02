@@ -120,7 +120,7 @@ This implementation uses meta programming to change the `console.log` behavior i
 `npm install relic_logs`
 
 ```js
-const XRelicLogs = require('relic_logs').x;
+const XRelicLogs = require('relic_logs').loadExperimental();
 ```
 
 ### 2. Init
