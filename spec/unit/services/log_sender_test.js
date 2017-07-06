@@ -21,31 +21,40 @@ describe('Services > Log Sender test', () => {
   describe('Log output', function () {
 
     it('Should send log output to each "log" output', function () {
-      const invokerStub = sinon.stub( SerializerInvoker, 'run' ).returns( serializedData );
-      const logBundle = { errorIntercepted: false };
-      let outputCalled = false;
-      let outputTwice = false;
+      const invokerStub = sinon.stub( SerializerInvoker, 'run' );
+      const knowSerialiedConsole = 'xxx';
+      const knowSerialiedJson = { foo: 'bar' };
+      let output1CalledWithRightData;
+      let output2CalledWithRightData;
+
       const settings = {
         outputs: [{
           type: 'log',
-          serializer: serializer,
+          serializer: 'console',
           sender: data => {
-            outputCalled = data === serializedData;
+            output1CalledWithRightData = data === knowSerialiedConsole;
           }
         }, {
           type: 'log',
-          serializer: serializer,
+          serializer: 'json',
           sender: data => {
-            outputTwice = data === serializedData;
+            output2CalledWithRightData = data === knowSerialiedJson;
           }
         }]
-      }
+      };
+
+      const logBundle = { errorIntercepted: false };
+
+      invokerStub.withArgs( settings.outputs[0].serializer, logBundle ).returns( knowSerialiedConsole );
+      invokerStub.withArgs( settings.outputs[1].serializer, logBundle ).returns( knowSerialiedJson );
 
       LogSender.send( settings, logBundle );
 
       assert( invokerStub.calledTwice );
-      assert( invokerStub.calledWith( serializer, logBundle ) );
-      assert( outputCalled );
+      assert( invokerStub.calledWith( settings.outputs[0].serializer, logBundle ) );
+      assert( invokerStub.calledWith( settings.outputs[1].serializer, logBundle ) );
+      assert( output1CalledWithRightData );
+      assert( output2CalledWithRightData );
     });
 
     it('Should not send error output to each "log" output', function () {

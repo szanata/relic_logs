@@ -14,4 +14,20 @@ describe('Utils > Stack Utils test', () => {
     const key = StackUtils.extractEventKey( knowError );
     expect( key ).to.eqls( knowKey );
   });
+
+  it('Should split a text and remove all lines that contains given string', () => {
+    const text = 'Some line\n' +
+      'foo\n' +
+      'more line (node_modules/relic_logs)\n' +
+      'bar (node_modules/relic_logs)\n' +
+      'more line\n';
+
+    const expected = 'Some line\n' +
+      'foo\n' +
+      'more line\n';
+
+    const result = StackUtils.removeInternalFrames( text );
+
+    expect( result ).to.eql( expected );
+  });
 });

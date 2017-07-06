@@ -13,11 +13,11 @@ XRelic.init( {
   envs: ['development'],
   outputs: [
     {
-      type: 'uncaughtException',
+      type: 'any',
       serializer: 'json',
       sender: console.log
     }, {
-      type: 'log',
+      type: 'any',
       serializer: 'console',
       sender: console.log
     }
@@ -28,27 +28,27 @@ XRelic.init( {
 app.get('/test', XRelic.layup('Method: GET test'), function ( req, res ) {
   const x = parseInt(req.query.x);
 
-  console.log( 'Handling request, arguments:', req.query );
+  XRelic.append( 'Handling request, arguments:', req.query );
 
   const p = new Promise( (resolve, reject) => {
-    console.log( 'Processing data inside a promise' );
+    XRelic.append( 'Processing data inside a promise' );
     resolve( true );
   });
 
   setTimeout( function () {
-    console.log( 'Processing data after setTimeout delay');
+    XRelic.append( 'Processing data after setTimeout delay');
     p.then( ok => {
-      console.log( 'Processing finishe', 'All done on promise.then' );
-      res.send( 200, 'foo' );
+      XRelic.append( 'Processing finished', 'All done on promise.then' );
+      res.status( 200 ).send( 'Foo' );
     });
   }, x);
 });
 
 // test uncaughtException
 app.get( '/err', XRelic.layup('Err'), function ( req, res ) {
-  console.log( 'Starting error request' );
+  XRelic.append( 'Starting error request' );
   a = b;
-  res.send( 500, 'Error' );
+  res.status( 500 ).send( 'Error' );
 });
 
 app.use( XRelic.interceptError() );

@@ -7,7 +7,17 @@ const LoggerManager = require( './lib/services/logger_manager' );
 const LogSender = require( './lib/services/log_sender' );
 const settings = require( './lib/utils/defaults' );
 
-FullStack.prepare( Promise.prototype, 'then', 0, 1 );
+/* Prepare logs on event loop funcs */
+FullStack.prepare( Promise.prototype, 'then' );
+FullStack.prepare( Promise.prototype, 'catch' );
+FullStack.prepare( global, 'setTimeout' );
+FullStack.prepare( global, 'setInterval' );
+FullStack.prepare( global, 'setImmediate' );
+
+/**
+ * @const {String} filename
+ * @description The file from where this is being executed so its entries can be excluded from the long stack
+ */
 
 module.exports = {
 
