@@ -1,54 +1,13 @@
 
 const FullStack = require( 'full_stack' );
 const LogBundle = require( './lib/models/log_bundle' );
+const Logger = require( './lib/models/logger' );
+const StackUtils = require( './lib/utils/stack_utils' );
+const LoggerManager = require( './lib/services/logger_manager' );
 const LogSender = require( './lib/services/log_sender' );
 const settings = require( './lib/utils/defaults' );
 
 FullStack.prepare( Promise.prototype, 'then', 0, 1 );
-
-/**
- * @var {originalLogFn} Keeps a clone of the original console.log
- */
-const originalLogFn = console.log.bind( console ); // eslint-disable-line no-console
-
-/**
- * @var {fatalSymbol} symbol to be used as identifier of uncaughtExceptions
- */
-const fatalSymbol = Symbol( 'fatal' );
-
-/**
- * @var {loggers} all logBundles went here during its exections
- */
-const loggers = [];
-
-/**
- * Overwrite console.log
- */
-function overwriteConsole() {
-  /**
-   * Wrapper for the original console.log
-   * @param {...Object} args Rest params like original console.log
-   * @return {undefined} Original console.log return
-   */
-  console.log = function log( ...args ) { // eslint-disable-line no-console
-    const stackEvents = new Error().stack.split( 'at ' );
-    const event = stackEvents.find( ev => ev.startsWith( 'Object.andromeda_' ) );
-
-    if ( !event ) { return originalLogFn( ...args ); }
-
-    const key = event.split( ' ' )[0].replace( /Object\./, '' );
-    const entry = loggers.find( logger => logger.id === key );
-
-    if ( !entry ) { return originalLogFn( ...args ); }
-
-    // if the first arg is the fatalSymbol, it is flagged as a uncaughtException
-    if ( args[0] === fatalSymbol ) {
-      entry.logBundle.appendError( ...args.slice( 1 ) );
-    } else {
-      entry.logBundle.append( ...args );
-    }
-  };
-}
 
 module.exports = {
 
@@ -59,45 +18,54 @@ module.exports = {
    */
   init( options ) {
     Object.assign( settings, options );
-    if ( settings.envs.includes( process.env.NODE_ENV ) ) {
-      overwriteConsole();
-    }
   },
 
   /**
-   * Prepare a express route to use RlcLogs
+   * Prepare a express route to use RelicLogs
    * @param {string} subheading Any identifier to therese logs
    * @return {function} express middleware
    */
   layup( subheading ) {
+    /**
+     * Well know express middleware
+     * This creates the bundle for the http route and creates the trap to detect the end of the request
+     */
     return function ( req, res, next ) {
-      const k = `andromeda_${new Date().getTime()}`;
-
-      loggers.push( { id: k, logBundle: new LogBundle( settings.title, subheading ) } );
+      const bundle = new LogBundle( settings.title, subheading );
+      const logger = new Logger( bundle );
+      LoggerManager.push( logger );
 
       // creates the dynamic function to be used as a identifier in the stack
-      const o = { [k]( _req, _res, _next ) {
+      const o = { [logger.key]( _req, _res, _next ) {
         _next();
 
         _req.on( 'end', () => {
-          const i = loggers.findIndex( logger => logger.id === k );
+          LoggerManager.remove( logger.key );
 
-          if ( i === -1 ) { return; } // log doesn't exist anymore
+          // avoid loggin on unwanted envs (eg test)
+          if ( !settings.envs.includes( process.env.NODE_ENV ) ) { return; }
 
-          const logger = loggers[i];
           LogSender.send( settings, logger.logBundle );
-          loggers.splice( i, 1 );
         } );
       } };
-      o[k]( req, res, next );
+      o[logger.key]( req, res, next );
     };
   },
 
   /**
-   * Get internal loggers
+   * Append logs to the bundle
+   * @param {...Object|Primitive} args Anything to append to the log
+   * @return {boolean} true if appended, false otherwise
    */
-  get [Symbol( 'loggers' )]() {
-    return loggers.slice();
+  append( ...args ) {
+    const key = StackUtils.extractEventKey( new Error() );
+    if ( !key ) { return false; }
+
+    const logger = LoggerManager.find( key );
+    if ( !logger ) { return false; }
+
+    logger.appendToBundle( ...args );
+    return true;
   },
 
 
@@ -107,8 +75,9 @@ module.exports = {
    * @return {function} Express error handling function, to use with `app.use`
    */
   interceptError( ) {
+    const self = this;
     return function ( err, req, res, next ) {
-      console.log( fatalSymbol, 'Fatal error on request', err ); // eslint-disable-line no-console
+      self.append( Logger.FatalSymbol, 'Fatal error on request', err );
       next( err );
     };
   }
