@@ -57,11 +57,11 @@ describe('Serializers > Console test', () => {
       `${ctrl.bright}Event 0: ${ctrl.reset}${ctrl.blue}2017-03-06 ${ctrl.cyan}test.js:23 (foo)${ctrl.reset}` +
       `${ctrl.dim}${sym.lv1Bullet}Main message` +
       `${sym.lv2Bullet}sub message 1` +
-      `${sym.lv2Bullet}sub message 2` +
+      `${sym.lv2Bullet}sub message 2${ctrl.reset}` +
       `${sym.blnkLnBr}` +
       `${ctrl.bright}Event 1: ${ctrl.reset}${ctrl.blue}2017-03-07 ${ctrl.cyan}test.js:34 (bar)${ctrl.reset}` +
       `${ctrl.dim}${sym.lv1Bullet}Another message` +
-      `${sym.lv2Bullet}sub message 3` +
+      `${sym.lv2Bullet}sub message 3${ctrl.reset}` +
       `${sym.blnkLnBr}${ctrl.reset}`;
 
     const result = ConsoleSerializer.run( logBundleMock );
