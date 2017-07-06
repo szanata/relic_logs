@@ -113,7 +113,7 @@ Make sure to put this after all routes and middlewares to intercept any uncaught
 
 ## eXperimental Implementation
 
-This implementation uses meta programming to change the `console.log` behavior inside intercepted handles and all dependencies accessed from it, to do the same atomic info, but without the need to send a `rlc` parameter to each part of the code. Also, as it uses `console.log`, when doing unit tests, the modules don't have any coupling with the RelicLogs lib.
+This implementation uses meta programming to find the log instance inside intercepted handles and all dependencies accessed from it, to do the same atomic info, but without the need to send a `rlc` parameter to each part of the code.
 
 ### 1. Install & Import
 
@@ -144,13 +144,14 @@ router.get('/foo', XRelicLogs.layup( 'subheading' ), function (req, res) {
 
 ### 5. Appending logs
 
-Just use `console.log` inside the express route handler or any class, function, promise or timeout that is called furthermore.
+Just use `Relic.append` inside the express route handler or any class, function, promise or timeout that is called furthermore.
 
 ```js
+const Relic = require('relic_logs').loadExperimental();
 router.get('/foo', RelicLogs.layup( ), function (req, res) {
-  console.log( 'Starting the code with some params', req.query );
+  Relic.append( 'Starting the code with some params', req.query );
   // processing
-  console.log( 'Responding to user', code, message );
+  Relic.append( 'Responding to user', code, message );
 });
 ```
 
