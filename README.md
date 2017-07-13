@@ -20,8 +20,7 @@
 
 ```
 
-A service module to group all logs from same request event loop together
-without interference for concurrent requests.
+A library to group and display all logs from a request, including those from async events triggered by it.
 
 ### Example
 
@@ -31,9 +30,11 @@ Output example:
 
 ### Usage
 
-This lib have two implementations, the **classic** and the **eXperimental**
-When eXperimental is considered ready, the classic will be deprecated.
+This lib have two implementations, the [classic](#user-content-classic-implementation) and the [eXperimental](#user-content-experimental-implementation)
 
+Difference is classic does need to expose a instance and send to each decency to create the logs, whereas the experimental does this by reflection, just using a singleton, does make the code decoupled.
+
+When eXperimental is considered ready, the classic will be deprecated.
 
 ## Classic implementation
 
@@ -50,19 +51,19 @@ const RelicLogs = require('relic_logs');
 ```js
 app.use( RelicLogs.init( options ) );
 ```
-
 *Init before any express route declaration!*
 
 ### 3. Setup
 The options is a object with the following:
 
-| Prop | Description | Default Value | Obs |
-| ------ | ----------- | ------------- | --- |
-| envs | Array of environments where the lib will produce output | `["staging", "production"]` | |
+| Prop | Description | Default Value |
+| ------ | ----------- | ------------- |
+| envs | Array of environments where the lib will produce output | `["staging", "production"]` |
 | title | The default title for the logs of a request | Request Life Cycle |
-| ~~errOutput~~ | Array of functions to to where the logs of request finished by uncaught exceptions will be sent | `[console.error]` | **Deprecated**, use `outputs` instead |
-| ~~logOutput~~ | Array of functions where the logs will be sent after the request finishes | `[console.log]` | **Deprecated**, use `outputs` instead |
-| outputs | Array of outputs objects to send the logs after the requests | *see below* | |
+| outputs | Array of outputs objects to send the logs after the requests | *see below* |
+| outputs[].type | What type of logs this output will send. **any** sends all types, **logs** sends just logs by the user "*append*" and **uncaughtException** send just unexpected errors caught by Relic | `any'` |
+| outputs[].serializer | What is the format this logs will be sent. **console** send those as colored terminal strings (like the print here), **string** sends plain string (with \r \n) and **json** send as a object | `'console'` |
+| sender | What function will be used to send logs. | console.log |
 
 #### Outputs Options ####
 A js object as this:
