@@ -63,16 +63,16 @@ The options is a object with the following:
 | outputs | Array of outputs objects to send the logs after the requests | *see below* |
 | outputs[].type | What type of logs this output will send. **any** sends all types, **logs** sends just logs by the user "*append*" and **uncaughtException** send just unexpected errors caught by Relic | `any'` |
 | outputs[].serializer | What is the format this logs will be sent. **console** send those as colored terminal strings (like the print here), **string** sends plain string (with \r \n) and **json** send as a object | `'console'` |
-| sender | What function will be used to send logs. | console.log |
+| outputs[].sender | What function will be used to send logs. | console.log |
 
 #### Outputs Options ####
 A js object as this:
 ```js
   [
     {
-      type: 'any', // what type of logs cycle this output will receive, can be 'any', 'uncaughtException' and 'logs'.
-      serializer: 'console', // type of serializer to be used on the event entries of this cycle. 'console' is a colored string ouput for terminals, 'string' is plain string with line breaks and 'json' is JS object literal.
-      sender: console.log // what function will receive this logs after the cycle and will be responsible to send it somewhere
+      type: 'any',
+      serializer: 'console',
+      sender: console.log
     }
   ]
 ```
@@ -91,7 +91,7 @@ The `intercept()` method accepts one *optional* parameters, a subheading to be d
 
 ### 5. Appending logs
 
-Inside the route of the previous example, a `rlc` object will be made available inside the res.locals. Using this, is possible to append events to this life cycle log.
+Inside the route of the previous example, a `rlc` object (relic instance) will be made available inside `res.locals`. Use this to append logs to this request cycle.
 
 ```js
 router.get('/foo', RelicLogs.intercept( 'subheading' ), function (req, res) {
@@ -108,13 +108,12 @@ The first parameter in the `append` will be the main message of the event, the o
 ```js
 app.use( RelicLogs.interceptError( ) );
 ```
-Make sure to put this after all routes and middlewares to intercept any uncaught error.
-
+Make sure to put this after all routes and middlewares to intercept any uncaught error. Express stuff, check it [here](https://expressjs.com/en/guide/error-handling.html)
 
 
 ## eXperimental Implementation
 
-This implementation uses meta programming to find the log instance inside intercepted handles and all dependencies accessed from it, to do the same atomic info, but without the need to send a `rlc` parameter to each part of the code.
+This implementation uses reflection to discovery what request triggered the call to the append method, so it is not necessary to have a instance of relic, just call a `append` direct from the library. The rest is the same as the other implementation.
 
 ### 1. Install & Import
 
@@ -132,7 +131,7 @@ XRelicLogs.init( options );
 
 ### 3. Options
 
-Same as the other implementations
+Same as the other implementation
 
 ### 4. Setup routes
 
@@ -149,6 +148,7 @@ Just use `Relic.append` inside the express route handler or any class, function,
 
 ```js
 const Relic = require('relic_logs').loadExperimental();
+
 router.get('/foo', RelicLogs.layup( ), function (req, res) {
   Relic.append( 'Starting the code with some params', req.query );
   // processing
@@ -159,3 +159,5 @@ router.get('/foo', RelicLogs.layup( ), function (req, res) {
 ### 6. Intercept uncaughtExceptions
 
 Same as other implementation
+
+## Enjoy!!!
