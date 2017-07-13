@@ -5,7 +5,7 @@ const defaults = require('../../../lib/utils/defaults');
 
 const defaultOutputs = [
   {
-    type: "all",
+    type: "any",
     serializer: 'console',
     sender: console.log
   }
