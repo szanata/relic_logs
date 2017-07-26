@@ -21,6 +21,7 @@ describe('Serializers > Json test', () => {
     };
     const expected = {
       title: "Test",
+      env: 'test',
       events: [
         {
           index: 0,

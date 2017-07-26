@@ -1,13 +1,12 @@
 
-const FullStack = require( 'full_stack' );
+require( 'trace' );
+
 const LogBundle = require( './lib/models/log_bundle' );
 const Logger = require( './lib/models/logger' );
 const StackUtils = require( './lib/utils/stack_utils' );
 const LoggerManager = require( './lib/services/logger_manager' );
 const LogSender = require( './lib/services/log_sender' );
 const settings = require( './lib/utils/defaults' );
-
-FullStack.setDefaultTraps(); // Prepare logs on event loop funcs
 
 /**
  * @const {String} filename
@@ -46,7 +45,6 @@ module.exports = {
 
         _req.on( 'end', () => {
           LoggerManager.remove( logger.key );
-
           // avoid loggin on unwanted envs (eg test)
           if ( !settings.envs.includes( process.env.NODE_ENV ) ) { return; }
 
@@ -64,6 +62,7 @@ module.exports = {
    */
   append( ...args ) {
     const key = StackUtils.extractEventKey( new Error() );
+    // console.log('Append', new Error().stack)
     if ( !key ) { return false; }
 
     const logger = LoggerManager.find( key );
