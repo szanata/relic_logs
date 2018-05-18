@@ -1,40 +1,39 @@
-const chai = require('chai');
-const sinon = require('sinon');
+const chai = require( 'chai' );
+const sinon = require( 'sinon' );
 
 const expect = chai.expect;
 const assert = chai.assert;
 
 // dependencies to stub
-const MessageSigner = require('../../../lib/services/message_signer');
+const MessageSigner = require( '../../../lib/services/message_signer' );
 
-const LogBundle = require('../../../lib/models/log_bundle');
+const LogBundle = require( '../../../lib/models/log_bundle' );
 
-describe('Models > Log Bundle test', () => {
-
+describe( 'Models > Log Bundle test', () => {
   afterEach( () => {
     if ( MessageSigner.run.restore ) {
       MessageSigner.run.restore();
     }
-  });
+  } );
 
-  it('Should start a new LogBundle', function () {
+  it( 'Should start a new LogBundle', () => {
     const l = new LogBundle();
     expect( l.constructor.name ).to.eql( 'LogBundle' );
-  });
+  } );
 
-  it('Should start a new LogBundle with given title', function () {
+  it( 'Should start a new LogBundle with given title', () => {
     const l = new LogBundle( 'Foo' );
     expect( l.title ).to.eql( 'Foo' );
-  });
+  } );
 
-  it('Should start a new LogBundle with given title and subtitle', function () {
+  it( 'Should start a new LogBundle with given title and subtitle', () => {
     const l = new LogBundle( 'Foo', 'Bar' );
     expect( l.title ).to.eql( 'Foo Bar' );
-  });
+  } );
 
-  it('Should append info', function () {
+  it( 'Should append info', () => {
     const l = new LogBundle();
-    const signerStub = sinon.stub( MessageSigner, 'run' ).returns( [ ] )
+    const signerStub = sinon.stub( MessageSigner, 'run' ).returns( [ ] );
 
     expect( l.size ).to.eql( 0 );
 
@@ -43,11 +42,11 @@ describe('Models > Log Bundle test', () => {
     expect( l.size ).to.eql( 2 );
 
     assert( signerStub.calledTwice );
-  });
+  } );
 
-  it('Should append error info', function () {
+  it( 'Should append error info', () => {
     const l = new LogBundle();
-    const signerStub = sinon.stub( MessageSigner, 'run' ).returns( [ ] )
+    const signerStub = sinon.stub( MessageSigner, 'run' ).returns( [ ] );
 
     expect( l.size ).to.eql( 0 );
 
@@ -55,11 +54,11 @@ describe('Models > Log Bundle test', () => {
     expect( l.size ).to.eql( 1 );
 
     assert( signerStub.calledOnce );
-  });
+  } );
 
-  it('Should have "errorIntercepted" status after append error info', function () {
+  it( 'Should have "errorIntercepted" status after append error info', () => {
     const l = new LogBundle();
-    const signerStub = sinon.stub( MessageSigner, 'run' ).returns( [ ] )
+    sinon.stub( MessageSigner, 'run' ).returns( [ ] );
 
     expect( l.size ).to.eql( 0 );
 
@@ -67,9 +66,9 @@ describe('Models > Log Bundle test', () => {
     expect( l.size ).to.eql( 1 );
 
     assert( l.errorIntercepted );
-  });
+  } );
 
-  it('Should return all info', function () {
+  it( 'Should return all info', () => {
     const l = new LogBundle();
 
     const knowResult1 = { meta: [ 'meta' ], messages: [ '1', '2' ] };
@@ -83,5 +82,5 @@ describe('Models > Log Bundle test', () => {
     l.append( ...knowResult2.messages );
 
     expect( l.info ).to.deep.eql( [ knowResult1, knowResult2 ] );
-  });
-});
+  } );
+} );

@@ -2,17 +2,13 @@
  
 [test] Mock App /foo
 ──────────────────────────────────────────────────
-Event 0: 2017-07-26 19:16:54 logger.js:42 (Logger.appendToBundle)
+Event 0: 2018-05-18 03:45:42 logger.js:42 (Logger.appendToBundle)
   └ Request started
  
-Event 1: 2017-07-26 19:16:54 logger.js:42 (Logger.appendToBundle)
+Event 1: 2018-05-18 03:45:42 logger.js:42 (Logger.appendToBundle)
   └ Starting process with
      └ {"name":"audi"}
  
-Event 2: 2017-07-26 19:16:55 logger.js:42 (Logger.appendToBundle)
+Event 2: 2018-05-18 03:45:42 logger.js:42 (Logger.appendToBundle)
   └ Got response from google
- 
-Event 3: 2017-07-26 19:16:55 logger.js:42 (Logger.appendToBundle)
-  └ Request end
-     └ result: true
  

@@ -1,159 +1,153 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const mock = require('mock-require');
+const chai = require( 'chai' );
+const sinon = require( 'sinon' );
+const mock = require( 'mock-require' );
 
 const expect = chai.expect;
 const assert = chai.assert;
 
-// to stub
-const LogBundle = require('../../lib/models/log_bundle');
-const LogSender = require('../../lib/services/log_sender');
+const knownKey = 'foo_888-768';
 
-describe('Request Life Cycle Logs tests', () => {
+const testSettings = {
+  title: 'Bar',
+  envs: [ 'staging' ],
+  outputs: [ {
+    type: 'log',
+    serializer: 'console',
+    sender: () => { }
+  } ]
+};
 
+class LogBundleKlazz {
+  append() { }
+}
+
+class LoggerKlazz {
+  constructor() {
+    this.key = knownKey;
+    this.logBundle = new LogBundleKlazz();
+  }
+  static get FatalSymbol() {
+    return Symbol.for( 'fatal' );
+  }
+}
+
+describe( 'Request Life Cycle Logs tests', () => {
   let RelicLogs;
-  let knowSettings;
+  let StackUtils;
+  let LoggerManager;
+  let LogSender;
+  let Logger;
+  const oldProcess = process.env.NODE_ENV;
+
+  // Call here to avoid conflic with other tests that clear cache
+  before( () => {
+    Logger = require( '../../lib/models/logger' );
+    StackUtils = require( '../../lib/utils/stack_utils' );
+    LoggerManager = require( '../../lib/services/logger_manager' );
+    LogSender = require( '../../lib/services/log_sender' );
+  } );
 
   afterEach( () => {
-    if ( LogSender.send.restore ) {
-      LogSender.send.restore();
-    }
-  })
+    if ( LogSender.send.restore ) { LogSender.send.restore(); }
+    if ( LoggerManager.find.restore ) { LoggerManager.find.restore(); }
+    if ( RelicLogs.append.restore ) { RelicLogs.append.restore(); }
+    if ( StackUtils.extractEventKey.restore ) { StackUtils.extractEventKey.restore(); }
+    process.env.NODE_ENV = oldProcess;
+  } );
+
   // get a new relic logs
   beforeEach( () => {
     // remove from cache
-    const path = '../../relic_logs';
-    delete require.cache[require.resolve(path)]
+    const path = '../../lib/relic_logs';
+    delete require.cache[require.resolve( path )];
 
-    // add new default settings
-    knowSettings = {
-      title: 'Bar',
-      envs: ['staging'],
-      outputs: [{
-        type: 'log',
-        serializer: 'console',
-        sender: 'fake_sender'
-      }]
+    process.env.NODE_ENV = 'staging';
+
+    mock( '../../lib/models/logger', LoggerKlazz );
+    mock( '../../lib/models/log_bundle', LogBundleKlazz );
+    RelicLogs = require( path );
+    RelicLogs.init( testSettings );
+    mock.stop( '../../lib/models/log_bundle' );
+    mock.stop( '../../lib/models/logger' );
+  } );
+
+  it( 'Should append some logs', () => {
+    let appendCalled = false;
+
+    const knownArgs = [ 'foo', 'bar' ];
+    const knownLogger = {
+      appendToBundle( ..._args ) {
+        appendCalled = true;
+        expect( ..._args ).to.deep.eql( knownArgs );
+      }
+    };
+    const extractEventKeyStub = sinon.stub( StackUtils, 'extractEventKey' ).returns( knownKey );
+    const findStub = sinon.stub( LoggerManager, 'find' ).returns( knownLogger );
+
+    RelicLogs.append( knownArgs );
+
+    assert( extractEventKeyStub.calledOnce );
+    assert( findStub.calledOnce );
+    assert( findStub.calledWith( knownKey ) );
+    assert( appendCalled );
+  } );
+
+  it( 'Should intercept error', () => {
+    let nextCalled = false;
+
+    const knownError = new Error( 'Foo' );
+    const knownNext = function () { nextCalled = true; };
+    const appendStub = sinon.stub( RelicLogs, 'append' );
+
+    const handler = RelicLogs.interceptError();
+    expect( handler ).to.be.a( 'function' );
+
+    handler( knownError, { }, { }, knownNext );
+
+    assert( nextCalled );
+    assert( appendStub.calledOnce );
+    expect( appendStub.getCall( 0 ).args[0] ).to.eql( Logger.FatalSymbol );
+    expect( appendStub.getCall( 0 ).args[1] ).to.eql( 'Fatal error on request' );
+    expect( appendStub.getCall( 0 ).args[2] ).to.deep.eql( knownError );
+  } );
+
+
+  it( 'Should create a middleware and listen req.end', () => {
+    let nextCalled = false;
+    let mockReqOnCalled = false;
+    let receivedEndFn;
+
+    const mockReqOn = ( event, fn ) => {
+      expect( event ).to.eql( 'end' );
+      expect( fn ).to.be.a( 'function' );
+      mockReqOnCalled = true;
+      receivedEndFn = fn;
     };
 
-    mock('../../lib/utils/defaults', knowSettings );
-    RelicLogs = require(path);
-    mock.stop('../../lib/utils/defaults');
-  });
+    const mockReq = { on: mockReqOn };
+    const mockRes = { };
+    const knownNext = function () { nextCalled = true; };
 
-  it('Should init the Relic Logs with given config', () => {
-    const knowOptions = {
-      title: 'Foo',
-      envs: ['development'],
-      outputs: [ {
-        type: 'any',
-        serializer: 'string',
-        sender: 'bar'
-      }]
-    }
-    RelicLogs.init( knowOptions );
+    const knownSubheading = 'foo';
+    const pushStub = sinon.stub( LoggerManager, 'push' );
+    const removeStub = sinon.stub( LoggerManager, 'remove' );
+    const sendStub = sinon.stub( LogSender, 'send' );
+    const middleware = RelicLogs.intercept( knownSubheading );
 
-    expect( knowSettings.title ).to.eql( knowOptions.title );
-    expect( knowSettings.envs ).to.deep.eql( knowOptions.envs );
-    expect( knowSettings.outputs ).to.deep.eql( knowOptions.outputs );
-  });
+    expect( middleware ).to.be.a( 'function' );
+    middleware( mockReq, mockRes, knownNext );
 
-  it('Should create the req.end interceptor and send logs', () => {
-    const initFn = RelicLogs.init( { envs: [ process.env.NODE_ENV ] } );
-
-    expect( initFn ).to.be.a.function;
-
-    const mockRlc = { foo: 'bar' };
-    const sendLogsStub = sinon.stub(LogSender, 'send').returns( true );
-    let reqOnEndSet = false;
-    const fakeReqOn = ( event, fn ) => {
-      expect( event ).to.eql( 'end' );
-      expect( fn ).to.be.a.fn;
-      reqOnEndSet = true;
-      fn();
-      assert( sendLogsStub.calledOnce );
-      assert( sendLogsStub.calledWith( knowSettings, mockRlc ) );
-    }
-    const fakeReq = { on: fakeReqOn };
-    const fakeRes = { locals: { rlc: mockRlc } };
-    let nextCalled = false;
-    const next = () => nextCalled = true;
-
-    initFn( fakeReq, fakeRes, next );
-
+    assert( pushStub.calledOnce );
+    expect( pushStub.getCall( 0 ).args[0].constructor.name ).to.eql( 'LoggerKlazz' );
     assert( nextCalled );
-    assert( reqOnEndSet );
-  });
+    assert( mockReqOnCalled );
 
-  it('Should create the req.end interceptor but not send logs if the env is not allowed by config', () => {
-    const initFn = RelicLogs.init( { envs: [ 'some_random_env' ] } );
+    receivedEndFn();
 
-    expect( initFn ).to.be.a.function;
-
-    const mockRlc = { foo: 'bar' };
-    const sendLogsStub = sinon.stub(LogSender, 'send').returns( true );
-    let reqOnEndSet = false;
-    const fakeReqOn = ( event, fn ) => {
-      expect( event ).to.eql( 'end' );
-      expect( fn ).to.be.a.fn;
-      reqOnEndSet = true;
-      fn();
-      assert( sendLogsStub.notCalled );
-    }
-    const fakeReq = { on: fakeReqOn };
-    const fakeRes = { locals: { rlc: mockRlc } };
-    let nextCalled = false;
-    const next = () => nextCalled = true;
-
-    initFn( fakeReq, fakeRes, next );
-
-    assert( nextCalled );
-    assert( reqOnEndSet );
-  });
-
-  it('Should intercept a route and inject a rlc object', () => {
-    const intercept = RelicLogs.intercept( 'subheading' );
-
-    expect( intercept ).to.be.a.function;
-
-    const fakeReq = { };
-    const fakeRes = { locals: { } };
-    let nextCalled = false;
-    const next = () => nextCalled = true;
-
-    // invoke the intercep fn
-    intercept( fakeReq, fakeRes, next );
-
-    assert( nextCalled );
-
-    const rlc = fakeRes.locals.rlc;
-
-    expect( rlc.constructor.name ).to.eql( 'LogBundle' );
-  });
-
-  it('Should intercep the express error handler and append an error', () => {
-    const errorHandler = RelicLogs.interceptError( );
-
-    expect( errorHandler ).to.be.a.function;
-
-    const knowError = new Error( 'Foo' );
-    const fakeReq = { };
-
-    let appendErrorCalled = false;
-    const appendError = ( title, err ) => {
-      assert( title === 'Fatal error on request')
-      assert( err === knowError );
-      appendErrorCalled = true;
-    }
-    const mockRlc = { appendError };
-    const fakeRes = { locals: { rlc: mockRlc } };
-
-    let nextCalledWithError = false;
-    const next = (err) => nextCalledWithError = err === knowError;
-
-    errorHandler( knowError, fakeReq, fakeRes, next );
-
-    assert( appendErrorCalled );
-    assert( nextCalledWithError );
-  })
-});
+    assert( removeStub.calledOnce );
+    assert( removeStub.calledWith( knownKey ) );
+    assert( sendStub.calledOnce );
+    expect( sendStub.getCall( 0 ).args[0] ).to.deep.eql( testSettings );
+    expect( sendStub.getCall( 0 ).args[1].constructor.name ).to.deep.eql( 'LogBundleKlazz' );
+  } );
+} );
