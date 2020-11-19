@@ -1,6 +1,6 @@
 # Request Life Cycle Logs aka "Relic Logs"
 
-![Example](http://i.imgur.com/GHbrNKR.jpg?1)
+![Example](https://raw.githubusercontent.com/szanata/relic_logs/master/doc_resources/json_output.png)
 
 This lib bundle and display all together logs from a HTTP request, **including those from async events** triggered by it. It was envisioned to be used with express js.
 
@@ -95,7 +95,7 @@ This is a single output. Your app can set any number of those.
 
 This will produce this:
 
-![JSON](https://raw.githubusercontent.com/madeinstefano/relic_logs/master/doc_resources/json_output.png)
+![JSON](https://raw.githubusercontent.com/szanata/relic_logs/master/doc_resources/json_output.png)
 
 #### JSON output example
 
@@ -111,27 +111,4 @@ This will produce this:
 
 This will produce this:
 
-![JSON](https://raw.githubusercontent.com/madeinstefano/relic_logs/master/doc_resources/console_output.png)
-
-## Enjoy!!!
-
-```
-╔══════╗ ╔══════╗ ╔═╗      ╔══════╗ ╔══════╗
-║ ╔══╗ ║ ║ ╔════╝ ║ ║      ╚═╗ ╔══╝ ║ ╔══╗ ║
-║ ║  ║ ║ ║ ║      ║ ║        ║ ║    ║ ║  ╚═╝
-║ ╚══╝ ║ ║ ╚══╗   ║ ║        ║ ║    ║ ║      ╭╮   ╭⎻⎻⎻╮╭⎻⎻⎻╮╭⎻⎻⎻╮
-║ ╔╗ ╔═╝ ║ ╔══╝   ║ ║        ║ ║    ║ ║      ││   ││⎺││││⎺⎺ ││⎺⎺
-║ ║╚╗╚╗  ║ ║      ║ ║        ║ ║    ║ ║  ╔═╗ ││   ││ ││││⎻⎻╮│╰⎻⎻╮
-║ ║ ╚╗╚╗ ║ ╚════╗ ║ ╚════╗ ╔═╝ ╚══╗ ║ ╚══╝ ║ ││__ ││_││││̅_││ ̅_̅_││
-╚═╝  ╚═╝ ╚══════╝ ╚══════╝ ╚══════╝ ╚══════╝ ╰───╯╰───╯╰───╯╰───╯
-
- ▓▓▓▓▓▓▓▓▓▓▓▓▓◤░░░░░░◥▓▓▓▓▓▓▓▓▓▓▓▓▓
- ▓▓▓▓▓▓▓▓▓◤░░░░░░░░░░░░░░◥▓▓▓▓▓▓▓▓▓
- ▓▓▓▓▓◤░░░░░░░░´    `░░░░░░░░◥▓▓▓▓▓
- ▓▓◤░░░░░░░░░´_⎯⎯⎯__* `░░░░░░░░░◥▓▓
- ▓▓◣░░░░░░░░░ˎ̽́★͘★ ★ ͙‾‾ˏ░░░░░░░░░◢▓▓
- ▓▓▓▓▓◣░░░░░░░░ˎ★͘ ͙★͘ˏ░░░░░░░░◢▓▓▓▓
- ▓▓▓▓▓▓▓▓▓◣░░░░░░░░░░░░░░◢▓▓▓▓▓▓▓▓▓
- ▓▓▓▓▓▓▓▓▓▓▓▓▓◣░░░░░░◢▓▓▓▓▓▓▓▓▓▓▓▓▓
-
-```
+![JSON](https://raw.githubusercontent.com/szanata/relic_logs/master/doc_resources/console_output.png)

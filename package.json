@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:madeinstefano/relic_logs.git"
+    "url": "https://github.com/szanata/relic_logs"
   },
   "keywords": [
     "logs",
@@ -44,10 +44,8 @@
     "test:integration": "NODE_ENV=test mocha --env --report spec --recursive ./spec/integration --timeout 8000",
     "test": "npm run test:unit && npm run test:integration"
   },
-  "contributors": [
-    {
-      "name": "Stéfano Zanata",
-      "email": "contato@szanata.com"
-    }
-  ]
+  "author": {
+    "name": "Stéfano Zanata",
+    "url": "https://github.com/szanata"
+  }
 }
